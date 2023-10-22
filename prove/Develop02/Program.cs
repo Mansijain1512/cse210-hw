@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
+
 class JournalEntry
 {
     public string Text { get; set; }
@@ -15,7 +16,8 @@ class Journal
     {
         Entries = new List<JournalEntry>();
     }
-     public void LoadEntries(string filePath)
+
+    public void LoadEntries(string filePath)
     {
         try
         {
@@ -123,8 +125,6 @@ class Program
             switch (choice)
             {
                 case "1":
-                    string prompt = PromptGenerator.GetRandomPrompt();
-                    Console.WriteLine(prompt);
                     WriteJournalEntry(journal);
                     break;
                 case "2":
@@ -163,19 +163,23 @@ class Program
         string filePath = Console.ReadLine();
         journal.LoadEntries(filePath);
     }
+
     static void SaveJournalEntries(Journal journal)
     {
         Console.WriteLine("Enter the file path to save journal entries:");
         string filePath = Console.ReadLine();
         journal.SaveEntries(filePath);
     }
-     static void WriteJournalEntry(Journal journal)
+
+    static void WriteJournalEntry(Journal journal)
     {
         Console.WriteLine("Enter the date (e.g., 2023-10-21):");
         string dateInput = Console.ReadLine();
 
         if (DateTime.TryParse(dateInput, out DateTime date))
         {
+            string prompt = PromptGenerator.GetRandomPrompt();
+            Console.WriteLine(prompt);
             Console.WriteLine("Enter your journal entry:");
             string entryText = Console.ReadLine();
             journal.AddEntry(date, entryText);
@@ -184,7 +188,5 @@ class Program
         {
             Console.WriteLine("Invalid date format. Please use YYYY-MM-DD.");
         }
-
-        DisplayMenu();
     }
 }
