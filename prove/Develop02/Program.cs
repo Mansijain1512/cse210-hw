@@ -6,6 +6,10 @@ class JournalEntry
 {
     public string Text { get; set; }
     public DateTime Date { get; set; }
+    public string Location { get; set; }
+    public string Weather { get; set; }
+    public string Mood { get; set; }
+    public List<string> Tags { get; set; }
 }
 
 class Journal
@@ -28,11 +32,36 @@ class Journal
                 foreach (string line in lines)
                 {
                     string[] parts = line.Split(',');
-                    if (parts.Length == 2)
+                    if (parts.Length >= 2)
                     {
                         if (DateTime.TryParse(parts[0], out DateTime date))
                         {
-                            Entries.Add(new JournalEntry { Date = date, Text = parts[1] });
+                            string entryText = parts[1];
+
+                            JournalEntry entry = new JournalEntry
+                            {
+                                Date = date,
+                                Text = entryText
+                            };
+
+                            if (parts.Length > 2)
+                            {
+                                entry.Location = parts[2];
+                            }
+                            if (parts.Length > 3)
+                            {
+                                entry.Weather = parts[3];
+                            }
+                            if (parts.Length > 4)
+                            {
+                                entry.Mood = parts[4];
+                            }
+                            if (parts.Length > 5)
+                            {
+                                entry.Tags = new List<string>(parts[5].Split(';'));
+                            }
+
+                            Entries.Add(entry);
                         }
                     }
                 }
@@ -58,7 +87,8 @@ class Journal
             {
                 foreach (JournalEntry entry in Entries)
                 {
-                    writer.WriteLine($"{entry.Date:s},{entry.Text}");
+                    string tags = entry.Tags != null ? string.Join(";", entry.Tags) : "";
+                    writer.WriteLine($"{entry.Date:s},{entry.Text},{entry.Location ?? ""},{entry.Weather ?? ""},{entry.Mood ?? ""},{tags}");
                 }
             }
 
@@ -70,9 +100,19 @@ class Journal
         }
     }
 
-    public void AddEntry(DateTime date, string entryText)
+    public void AddEntry(DateTime date, string entryText, string location, string weather, string mood, List<string> tags)
     {
-        Entries.Add(new JournalEntry { Date = date, Text = entryText });
+        JournalEntry entry = new JournalEntry
+        {
+            Date = date,
+            Text = entryText,
+            Location = location,
+            Weather = weather,
+            Mood = mood,
+            Tags = tags
+        };
+
+        Entries.Add(entry);
         Console.WriteLine("Journal entry added successfully.");
     }
 
@@ -82,6 +122,22 @@ class Journal
         foreach (var entry in Entries)
         {
             Console.WriteLine($"{entry.Date.ToString("yyyy-MM-dd")}: {entry.Text}");
+            if (!string.IsNullOrEmpty(entry.Location))
+            {
+                Console.WriteLine($"Location: {entry.Location}");
+            }
+            if (!string.IsNullOrEmpty(entry.Weather))
+            {
+                Console.WriteLine($"Weather: {entry.Weather}");
+            }
+            if (!string.IsNullOrEmpty(entry.Mood))
+            {
+                Console.WriteLine($"Mood: {entry.Mood}");
+            }
+            if (entry.Tags != null && entry.Tags.Count > 0)
+            {
+                Console.WriteLine($"Tags: {string.Join(", ", entry.Tags)}");
+            }
         }
     }
 }
@@ -125,6 +181,8 @@ class Program
             switch (choice)
             {
                 case "1":
+                    string prompt = PromptGenerator.GetRandomPrompt();
+                    Console.WriteLine(prompt);
                     WriteJournalEntry(journal);
                     break;
                 case "2":
@@ -178,15 +236,29 @@ class Program
 
         if (DateTime.TryParse(dateInput, out DateTime date))
         {
-            string prompt = PromptGenerator.GetRandomPrompt();
-            Console.WriteLine(prompt);
             Console.WriteLine("Enter your journal entry:");
             string entryText = Console.ReadLine();
-            journal.AddEntry(date, entryText);
+
+            Console.WriteLine("Enter location:");
+            string location = Console.ReadLine();
+
+            Console.WriteLine("Enter weather conditions:");
+            string weather = Console.ReadLine();
+
+            Console.WriteLine("Enter your mood:");
+            string mood = Console.ReadLine();
+
+            Console.WriteLine("Enter tags (comma-separated):");
+            string tagsInput = Console.ReadLine();
+            List<string> tags = new List<string>(tagsInput.Split(','));
+
+            journal.AddEntry(date, entryText, location, weather, mood, tags);
         }
         else
         {
             Console.WriteLine("Invalid date format. Please use YYYY-MM-DD.");
         }
+
+        DisplayMenu();
     }
 }
